@@ -1,0 +1,48 @@
+.list-cards .list-card .card-labels
+{
+    margin-bottom: 2px !important;
+    position: relative;
+    z-index: 1;
+    margin-top: -3px;
+}
+.list-cards .list-card .card-label
+{
+    height: 20px !important;
+    font: normal 12px/20px Arial;
+    text-align: center;
+    width: auto !important;
+    padding: 0 3px !important;
+    transition: height 0.5s;
+}
+.list-cards .list-card:hover .card-label
+{
+    height: 3px !important;
+}
+
+.card-id
+{
+    background: black !important;
+}
+.list-card-title
+{
+    overflow: visible !important;
+    clear: none !important;
+}
+
+.creBE
+{
+    /* background: rgba(0, 173, 16, 0.1) !important; */
+    background: #d9ebdb !important;
+    border-color: #0b9a04 !important;
+}
+
+.creFE
+{
+    /* background: rgba(0, 46, 196, 0.1) !important; */
+    background: #e1e8ff !important;
+    border-color: #04279a !important;
+}
+.icn-gd-image
+{
+    background-image: url(chrome-extension://__MSG_@@extension_id__/img/gd-pic.png) !important;
+}
