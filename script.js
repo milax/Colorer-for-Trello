@@ -9,18 +9,27 @@
             cssFE = {
                 background: 'yellow'
             },
-            taskStates = ['Todo', 'InProgress', 'ReadyFoTest', 'Done'];
+            taskStates = ['Todo', 'InProgress', 'ReadyFoTest', 'Done'],
+            that = this;
 
         // =
-        this.init = function() {
-            var urlPath = window.location.pathname,
-                boardId = /^.*\/(.*)\/.*$/.exec(urlPath);
+        this.doUI = function($labels) {
+            var user    = $('.js-member-name').text(),
+                $cards  = $labels ? $labels.closest('.list-card') : $('.list-card');
 
-            $.getJSON('https://trello.com/1/boards/' + boardId[1] + '/labelNames?key=e365f52ed1653300b1940e4fbe73cda5', function(data){
-                labels = data;
-                doUI();
-                setInterval(doUI, 500);
-            });
+            $cards.each(updateCard);
+/*
+            var $popup = $('.window-wrapper .window-main-col');
+            if($popup.length) {
+                $popup.find('.preview.js-real-link').each(function(){
+                    var $self = $(this),
+                        $fileName = $self.attr('title');
+                    if($fileName.match(/.*\.(jpg|png|jpeg|gif)$/)) {
+                        $self.find('.google-drive-logo').addClass('icn-gd-image');
+                    }
+                });
+            }
+*/
         };
 
         var updateCard = function() {
@@ -95,25 +104,6 @@
         };
 
         // =
-        var doUI = function() {
-            var user = $('.js-member-name').text();
-
-            $('.list-card').each(updateCard);
-/*
-            var $popup = $('.window-wrapper .window-main-col');
-            if($popup.length) {
-                $popup.find('.preview.js-real-link').each(function(){
-                    var $self = $(this),
-                        $fileName = $self.attr('title');
-                    if($fileName.match(/.*\.(jpg|png|jpeg|gif)$/)) {
-                        $self.find('.google-drive-logo').addClass('icn-gd-image');
-                    }
-                });
-            }
-*/
-        };
-        
-        // =
         var hex2rgb = function(hex) {
             var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? {
@@ -134,12 +124,43 @@
             var hexDigits = new Array ("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f");
             return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
         };
+
+        // =
+        this.init = function() {
+            var urlPath = window.location.pathname,
+                boardId = /^.*\/(.*)\/.*$/.exec(urlPath);
+
+            $.getJSON('https://trello.com/1/boards/' + boardId[1] + '/labelNames?key=e365f52ed1653300b1940e4fbe73cda5', function(data){
+                labels = data;
+                that.doUI();
+            });
+        };
     };
 
 
     $(function(){
         var colorerInstance = new colorer();
         colorerInstance.init();
+
+        var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+        var obs = new MutationObserver(function(mutations, observer) {
+            for(var i = 0; i < mutations.length; ++i) {
+                var $self = $(mutations[i].target);
+                if($self.hasClass('js-card-labels')) {
+                    $self.removeClass('js-colorer-inited');
+                    colorerInstance.doUI($self);
+                }
+            }
+        });
+
+        if(obs && obs.observe) {
+            obs.observe(document.getElementById('board'), {
+                attributes: true,
+                childList: true,
+                characterData: true,
+                subtree:true
+            });
+        }
     });
 
 })(jQuery);
