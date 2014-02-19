@@ -13,12 +13,16 @@
             that = this;
 
         // =
-        this.doUI = function($labels) {
+        this.doUI = function() {
             var user    = $('.js-member-name').text(),
-                $cards  = $labels ? $labels.closest('.list-card') : $('.list-card');
+                $cards  = $('.list-card');
 
             $cards.each(updateCard);
-/*
+
+            addImgIcon();
+        };
+
+        var addImgIcon = function() {
             var $popup = $('.window-wrapper .window-main-col');
             if($popup.length) {
                 $popup.find('.preview.js-real-link').each(function(){
@@ -29,7 +33,6 @@
                     }
                 });
             }
-*/
         };
 
         var updateCard = function() {
@@ -49,13 +52,12 @@
 
                 var cardTitleText = $cardTitle.text(),
                     cardId = cardTitleText.match(/(#\d+)/);
-                    cardNewTitleText = cardTitleText.replace(/#\d+/, '');
 
+                console.log($cardTitle.attr('class'));
                 if(cardId) {
                     var $cardIdBox = $('<div />', {class: 'card-label card-id', text: cardId[0] });
                     $cardLabels.prepend($cardIdBox);
                 }
-                $cardTitle.text(cardNewTitleText);
             }
 
             function updateLabels() {
@@ -130,38 +132,55 @@
             var urlPath = window.location.pathname,
                 boardId = /^.*\/(.*)\/.*$/.exec(urlPath);
 
-            $.getJSON('https://trello.com/1/boards/' + boardId[1] + '/labelNames?key=e365f52ed1653300b1940e4fbe73cda5', function(data){
-                labels = data;
-                that.doUI();
-            });
+            if(boardId && boardId[1]) {
+                $.getJSON('https://trello.com/1/boards/' + boardId[1] + '/labelNames?key=e365f52ed1653300b1940e4fbe73cda5', function(data){
+                    labels = data;
+                    that.doUI();
+                });
+            }
         };
     };
 
 
     $(function(){
-        var colorerInstance = new colorer();
+        var colorerInstance = new colorer(),
+            $card2Update;
+
         colorerInstance.init();
 
-        var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-        var obs = new MutationObserver(function(mutations, observer) {
-            for(var i = 0; i < mutations.length; ++i) {
-                var $self = $(mutations[i].target);
-                if($self.hasClass('js-card-labels')) {
-                    $self.removeClass('js-colorer-inited');
-                    colorerInstance.doUI($self);
-                }
-            }
-        });
+        var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
+            labelsChangingObs = new MutationObserver(function(mutations, observer) {
+                for(var i = 0; i < mutations.length; ++i) {
+                    var $self = $(mutations[i].target);
+                    if(!$self.attr('class') || $self.hasClass('date')) {
+                        continue;
+                    }
 
-        if(obs && obs.observe) {
-            obs.observe(document.getElementById('board'), {
-                attributes: true,
+                    if($self.hasClass('js-card-labels')) {
+                        $card2Update = $self.closest('.list-card');
+
+                        $self.removeClass('js-colorer-inited');
+                        $card2Update.find('.js-card-name').removeClass('js-colorer-inited');
+                        
+                        colorerInstance.doUI();
+                    }
+                    else if($self.hasClass('board-header-btn')) {
+                        colorerInstance.init();
+                    }
+                    else if($self.hasClass('list-card-details')) {
+                         colorerInstance.doUI();
+                    }
+                }
+            });
+
+        if(labelsChangingObs && labelsChangingObs.observe !== null) {
+            labelsChangingObs.observe(document, {
                 childList: true,
                 characterData: true,
-                subtree:true
+                subtree: true
             });
         }
+
     });
 
 })(jQuery);
-
